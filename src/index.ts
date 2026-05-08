@@ -1,16 +1,9 @@
 import dotenv from 'dotenv';
 import { NotificationManager } from './notificationManager';
 import { PriorityCalculator } from './priorityCalculator';
-
 dotenv.config();
-
-// Configuration
 const API_ENDPOINT = process.env.API_ENDPOINT || 'http://4.224.186.213/evaluation-service/notifications';
 const TOP_N = parseInt(process.env.TOP_N || '10', 10);
-
-/**
- * Format notification for display
- */
 function formatNotification(notification: any, index: number): string {
   const rank = `#${index + 1}`;
   const type = `[${notification.Type}]`;
@@ -20,10 +13,6 @@ function formatNotification(notification: any, index: number): string {
 
   return `${rank.padEnd(4)} ${type.padEnd(12)} ${message.padEnd(25)} ${timestamp.padEnd(20)} ${id}`;
 }
-
-/**
- * Main function to fetch and display top N notifications
- */
 async function main() {
   console.log('================================');
   console.log('PRIORITY INBOX NOTIFICATION SYSTEM');
@@ -31,12 +20,9 @@ async function main() {
   console.log(`\nFetching notifications from API...`);
   console.log(`Endpoint: ${API_ENDPOINT}`);
   console.log(`Top N: ${TOP_N}\n`);
-
-  // Initialize notification manager
   const manager = new NotificationManager(API_ENDPOINT);
 
   try {
-    // Fetch notifications from API
     const notifications = await manager.fetchNotifications();
 
     if (notifications.length === 0) {
@@ -45,14 +31,8 @@ async function main() {
     }
 
     console.log(`✓ Fetched ${notifications.length} notifications from API\n`);
-
-    // Update cache
     manager.updateCache(notifications);
-
-    // Get top N notifications
     const topNotifications = manager.getTopNNotifications(TOP_N);
-
-    // Display all notifications
     console.log('═══════════════════════════════════════════════════════════════');
     console.log('ALL NOTIFICATIONS (Total: ' + topNotifications.totalNotifications + ')');
     console.log('═══════════════════════════════════════════════════════════════');
@@ -68,8 +48,6 @@ async function main() {
     notifications.forEach((notification, index) => {
       console.log(formatNotification(notification, index));
     });
-
-    // Display top N priority notifications
     console.log('\n═══════════════════════════════════════════════════════════════');
     console.log(`TOP ${TOP_N} PRIORITY NOTIFICATIONS`);
     console.log('═══════════════════════════════════════════════════════════════');
@@ -85,8 +63,6 @@ async function main() {
     topNotifications.topN.forEach((notification, index) => {
       console.log(formatNotification(notification, index));
     });
-
-    // Display priority details
     console.log('\n═══════════════════════════════════════════════════════════════');
     console.log('PRIORITY BREAKDOWN (Top 10)');
     console.log('═══════════════════════════════════════════════════════════════');
@@ -115,16 +91,12 @@ async function main() {
           ps.score.toFixed(2)
       );
     });
-
-    // Display cache statistics
     console.log('\n═══════════════════════════════════════════════════════════════');
     console.log('SYSTEM STATISTICS');
     console.log('═══════════════════════════════════════════════════════════════');
     console.log(`Total Notifications Cached: ${manager.getCacheSize()}`);
     console.log(`Top N Displayed: ${Math.min(TOP_N, topNotifications.topN.length)}`);
     console.log(`Timestamp: ${topNotifications.timestamp}`);
-
-    // Display algorithm explanation
     console.log('\n═══════════════════════════════════════════════════════════════');
     console.log('ALGORITHM EXPLANATION');
     console.log('═══════════════════════════════════════════════════════════════');
@@ -154,6 +126,4 @@ Example:
     console.error('Error in main:', error instanceof Error ? error.message : error);
   }
 }
-
-// Run the application
 main();
