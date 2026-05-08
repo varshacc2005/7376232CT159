@@ -2,10 +2,6 @@ import axios, { AxiosInstance } from 'axios';
 import { Notification, NotificationResponse, TopNotifications } from './types';
 import { PriorityCalculator } from './priorityCalculator';
 
-/**
- * NotificationManager: Manages fetching, storing, and prioritizing notifications
- * Maintains top N notifications efficiently using a min-heap approach
- */
 export class NotificationManager {
   private notificationCache: Map<string, Notification> = new Map();
   private apiClient: AxiosInstance;
@@ -23,9 +19,6 @@ export class NotificationManager {
     });
   }
 
-  /**
-   * Get mock notifications for demonstration purposes
-   */
   private getMockNotifications(): Notification[] {
     return [
       {
@@ -103,9 +96,7 @@ export class NotificationManager {
     ];
   }
 
-  /**
-   * Fetch notifications from API
-   */
+
   async fetchNotifications(): Promise<Notification[]> {
     try {
       const response = await this.apiClient.get<NotificationResponse>(
@@ -116,8 +107,6 @@ export class NotificationManager {
         console.error('No notifications in response');
         return this.getMockNotifications();
       }
-
-      // Filter out incomplete notifications (those without required fields)
       const validNotifications = response.data.notifications.filter(
         (n: Notification) => n.ID && n.Type && n.Timestamp
       );
@@ -128,23 +117,13 @@ export class NotificationManager {
       return this.getMockNotifications();
     }
   }
-
-  /**
-   * Update cache with new notifications
-   */
   updateCache(notifications: Notification[]): void {
     notifications.forEach((notification) => {
       this.notificationCache.set(notification.ID, notification);
     });
   }
 
-  /**
-   * Get top N notifications based on priority
-   * Algorithm: O(n log n) - sort by priority score
-   * For maintaining top N with continuous updates: use min-heap O(n + k log n)
-   */
   getTopNNotifications(n: number = 10): TopNotifications {
-    // Get all notifications from cache
     const allNotifications = Array.from(this.notificationCache.values());
 
     if (allNotifications.length === 0) {
@@ -154,12 +133,8 @@ export class NotificationManager {
         timestamp: new Date().toISOString(),
       };
     }
-
-    // Calculate priority scores
     const priorityScores =
       this.priorityCalculator.calculatePriorityScores(allNotifications);
-
-    // Sort by score (descending) - O(n log n)
     const sortedByPriority = priorityScores
       .sort((a, b) => b.score - a.score)
       .slice(0, n)
@@ -172,16 +147,6 @@ export class NotificationManager {
     };
   }
 
-  /**
-   * Maintain top N efficiently using a min-heap approach
-   * For continuous updates, this is better than re-sorting all notifications
-   *
-   * Time Complexity:
-   * - Adding new notification: O(log k) where k = n
-   * - Total for m new notifications: O(m log k)
-   *
-   * Space Complexity: O(k) where k = n
-   */
   getTopNEfficientHeap(n: number = 10): TopNotifications {
     const allNotifications = Array.from(this.notificationCache.values());
 
@@ -192,25 +157,17 @@ export class NotificationManager {
         timestamp: new Date().toISOString(),
       };
     }
-
-    // Calculate priority scores
     const priorityScores =
       this.priorityCalculator.calculatePriorityScores(allNotifications);
-
-    // Use a simple selection algorithm for top N (still O(n) on average)
-    // For true production use, implement a min-heap using a binary heap structure
     let topN = priorityScores.slice(0, n);
 
     for (let i = n; i < priorityScores.length; i++) {
-      // Find minimum in current top N
       let minIndex = 0;
       for (let j = 1; j < topN.length; j++) {
         if (topN[j].score < topN[minIndex].score) {
           minIndex = j;
         }
       }
-
-      // If current score is better than minimum, replace
       if (priorityScores[i].score > topN[minIndex].score) {
         topN[minIndex] = priorityScores[i];
       }
@@ -223,23 +180,14 @@ export class NotificationManager {
     };
   }
 
-  /**
-   * Get all cached notifications
-   */
   getAllNotifications(): Notification[] {
     return Array.from(this.notificationCache.values());
   }
 
-  /**
-   * Get cache size
-   */
   getCacheSize(): number {
     return this.notificationCache.size;
   }
 
-  /**
-   * Clear cache
-   */
   clearCache(): void {
     this.notificationCache.clear();
   }
