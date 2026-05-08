@@ -1,6 +1,3 @@
-/**
- * Notification Type Definitions
- */
 
 export type NotificationType = 'Placement' | 'Result' | 'Event';
 
